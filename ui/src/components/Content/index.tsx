@@ -103,9 +103,10 @@ const Content = (props: any) => {
             mutiSearch(item.url, searchString)
           );
         });
-      return [...localResult, ...generateSearchEngineCard(searchString)]
+        return localResult
+//       return [...localResult, ...generateSearchEngineCard(searchString)]
     } else {
-      return [...generateSearchEngineCard(searchString)];
+      return [];
     }
   }, [data, currTag, searchString]);
 
