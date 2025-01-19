@@ -2,19 +2,49 @@ import { useMemo } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
-const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching }) => {
+
+// 添加接口定义
+interface CardProps {
+  id?: string;          // 添加 id 属性
+  title: string;
+  url: string;
+  des: string;
+  logo: string;
+  catelog: string;
+  onClick: () => void;
+  index: number;
+  isSearching: boolean;
+}
+
+const Card: React.FC<CardProps> = ({
+  id,                   // 添加 id 参数
+  title,
+  url,
+  des,
+  logo,
+  catelog,
+  onClick,
+  index,
+  isSearching
+}) => {
   const el = useMemo(() => {
     if (url === "admin") {
       return <img src={logo} alt={title} />
     } else {
-        return <img src={getLogoUrl(logo)} alt={title} />
+      return <img src={getLogoUrl(logo)} alt={title} />
     }
-  }, [logo, title, url])
+  }, [logo, title, url]);
+
   const showNumIndex = index < 10 && isSearching;
+
   return (
     <a
       href={url === "toggleJumpTarget" ? undefined : url}
-      onClick={() => {
+      onClick={(e) => {
+        if (id) {          // 添加 id 判断
+          e.preventDefault();
+          window.location.href = `/tool/${id}`;
+        }
         onClick();
       }}
       target={getJumpTarget() === "blank" ? "_blank" : "_self"}
@@ -25,11 +55,6 @@ const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching }) =
       <div className="card-content">
         <div className="card-left">
           {el}
-          {/* {url === "admin" ? (
-            <img src={logo} alt={title} />
-          ) : (
-            <img src={`/api/img?url=${logo}`} alt={title} />
-          )} */}
         </div>
         <div className="card-right">
           <div className="card-right-top">

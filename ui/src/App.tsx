@@ -4,6 +4,10 @@ import { App as AntApp, Menu, Spin } from 'antd';
 import { decodeTheme, initTheme } from './utils/theme';
 import './App.css';
 
+
+const ToolDetail = React.lazy(() => import('./pages/ToolDetail'));
+
+
 // 使用 React.lazy 懒加载组件
 const Home = React.lazy(() => import('./pages/Home'));
 const AdminPage = React.lazy(() => import('./pages/admin').then(module => ({ default: module.AdminPage })));
@@ -109,6 +113,7 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
+            <Route path="/tool/:id" element={<Layout><ToolDetail /></Layout>} />
             {/* 暂时注释掉未实现的路由 */}
             {/*
             <Route path="/popular" element={<Layout><Popular /></Layout>} />

@@ -1,3 +1,4 @@
+// ui/src/pages/Home.tsx
 import React from 'react';
 import Content from '../components/Content';
 
@@ -11,4 +12,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home; 
+export default Home;

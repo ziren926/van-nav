@@ -125,30 +125,33 @@ const Content = (props: any) => {
     // eslint-disable-next-line
   }, [searchString])
 
-  const renderCardsV2 = useCallback(() => {
-    return filteredData.map((item, index) => {
-      return (
-        <CardV2
-          title={item.name}
-          url={item.url}
-          des={item.desc}
-          logo={item.logo}
-          key={item.id}
-          catelog={item.catelog}
-          index={index}
-          isSearching={searchString.trim() !== ""}
-          onClick={() => {
-            resetSearch();
-            if (item.url === "toggleJumpTarget") {
-              toggleJumpTarget();
-              loadData();
-            }
-          }}
-        />
-      );
-    });
-    // eslint-disable-next-line
-  }, [filteredData, searchString]);
+   const renderCardsV2 = useCallback(() => {
+      return filteredData.map((item, index) => {
+        return (
+          <CardV2
+            key={item.id}
+            id={item.id}        // 添加 id 属性
+            title={item.name}
+            url={item.url}
+            des={item.desc}
+            logo={item.logo}
+            catelog={item.catelog}
+            index={index}
+            isSearching={searchString.trim() !== ""}
+            onClick={() => {
+              resetSearch();
+              if (item.url === "toggleJumpTarget") {
+                toggleJumpTarget();
+                loadData();
+              } else if (item.id) {
+                // 如果有 id，跳转到工具详情页
+                window.location.href = `/tool/${item.id}`;
+              }
+            }}
+          />
+        );
+      });
+  }, [filteredData, searchString, loadData]);
 
   const onKeyEnter = (ev: KeyboardEvent) => {
     const cards = filteredDataRef.current;
