@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Input, Button, Form, message } from 'antd';
-import { TextArea } from 'antd/lib/input';
 
 const PostEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +39,7 @@ const PostEditor: React.FC = () => {
         body: JSON.stringify(values),
       });
       message.success('保存成功');
-      history.push(`/admin/tools/${id}`);
+      navigate(`/admin/tools/${id}`);
     } catch (error) {
       message.error('保存失败');
     }
@@ -57,14 +56,16 @@ const PostEditor: React.FC = () => {
           <Form.Item
             name="post_title"
             label="标题"
+            rules={[{ required: true, message: '请输入标题' }]}
           >
             <Input placeholder="请输入标题" />
           </Form.Item>
           <Form.Item
             name="post_content"
             label="内容"
+            rules={[{ required: true, message: '请输入内容' }]}
           >
-            <TextArea rows={10} placeholder="请输入内容" />
+            <Input.TextArea rows={10} placeholder="请输入内容" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">

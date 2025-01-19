@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from 'react-router-dom'; // 添加 useHistory
-import { Card, Input, Button, Form, message, Spin } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, Input, Button, Form, message } from 'antd';
 import ReactMarkdown from 'react-markdown';
 
-const { TextArea } = Input;
+interface Tool {
+  id: string;
+  name: string;
+  desc: string;
+  content: string;
+}
 
 const ToolDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const history = useHistory(); // 初始化 useHistory
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-  const [tool, setTool] = useState<any>(null);
+  const [tool, setTool] = useState<Tool | null>(null);
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
 
@@ -20,8 +25,10 @@ const ToolDetail: React.FC = () => {
   const loadToolDetail = async () => {
     try {
       setLoading(true);
-      // 使用现有的 api 方法
       const response = await fetch(`/api/tools/${id}`);
+      if (!response.ok) {
+        throw new Error('加载失败');
+      }
       const data = await response.json();
       setTool(data);
       form.setFieldsValue({
@@ -30,6 +37,7 @@ const ToolDetail: React.FC = () => {
       });
     } catch (err) {
       message.error('加载失败');
+      console.error('加载工具详情失败:', err);
     } finally {
       setLoading(false);
     }
@@ -37,28 +45,35 @@ const ToolDetail: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
-      await fetch(`/api/tools/${id}`, {
+      const response = await fetch(`/api/tools/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('_token')}`,
         },
         body: JSON.stringify(values),
       });
+
+      if (!response.ok) {
+        throw new Error('更新失败');
+      }
+
       message.success('更新成功');
       setIsEditing(false);
       loadToolDetail();
     } catch (err) {
       message.error('更新失败');
+      console.error('更新工具详情失败:', err);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
       <Card loading={loading}>
-        {!loading && (
+        {!loading && tool && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold">{tool?.name}</h1>
+              <h1 className="text-2xl font-bold">{tool.name}</h1>
               <div>
                 <Button
                   type={isEditing ? "primary" : "default"}
@@ -69,7 +84,7 @@ const ToolDetail: React.FC = () => {
                 <Button
                   type="link"
                   className="ml-2"
-                  onClick={() => history.push(`/admin/tools/${id}/post`)}
+                  onClick={() => navigate(`/admin/tools/${id}/post`)}
                 >
                   编辑帖子
                 </Button>
@@ -80,18 +95,24 @@ const ToolDetail: React.FC = () => {
                 form={form}
                 onFinish={handleSubmit}
                 layout="vertical"
+                initialValues={{
+                  description: tool.desc,
+                  content: tool.content
+                }}
               >
                 <Form.Item
                   name="description"
                   label="简短描述"
+                  rules={[{ required: true, message: '请输入简短描述' }]}
                 >
                   <Input placeholder="简短描述工具的主要功能" />
                 </Form.Item>
                 <Form.Item
                   name="content"
                   label="详细内容"
+                  rules={[{ required: true, message: '请输入详细内容' }]}
                 >
-                  <TextArea
+                  <Input.TextArea
                     rows={10}
                     placeholder="使用 Markdown 格式编写详细内容"
                   />
@@ -105,11 +126,11 @@ const ToolDetail: React.FC = () => {
             ) : (
               <div>
                 <div className="mb-4 text-gray-600">
-                  {tool?.desc}
+                  {tool.desc}
                 </div>
                 <div className="prose max-w-none">
                   <ReactMarkdown>
-                    {tool?.content || '暂无详细内容'}
+                    {tool.content || '暂无详细内容'}
                   </ReactMarkdown>
                 </div>
               </div>
