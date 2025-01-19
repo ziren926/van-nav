@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
+    "fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ziren926/van-nav/database"
 	"github.com/ziren926/van-nav/logger"
@@ -492,18 +492,21 @@ func UpdateToolHandler(c *gin.Context) {
 // 添加获取工具详情的处理函数
 func GetToolDetailHandler(c *gin.Context) {
     id := c.Param("id")
+    logger.LogInfo("收到获取工具详情请求，ID: %s", id)
+
     numberId, err := strconv.ParseInt(id, 10, 64)
     if err != nil {
-        logger.LogError("无效的ID格式: %s", id)
+        logger.LogError("无效的ID格式: %s, 错误: %v", id, err)
         c.JSON(http.StatusBadRequest, gin.H{
             "success":      false,
-            "errorMessage": "无效的ID格式",
+            "errorMessage": fmt.Sprintf("无效的ID格式: %s", id),
         })
         return
     }
 
     tool, err := service.GetToolById(numberId)
     if err != nil {
+        logger.LogError("获取工具失败, ID: %d, 错误: %v", numberId, err)
         if err.Error() == "工具不存在" {
             c.JSON(http.StatusNotFound, gin.H{
                 "success":      false,
@@ -513,11 +516,12 @@ func GetToolDetailHandler(c *gin.Context) {
         }
         c.JSON(http.StatusInternalServerError, gin.H{
             "success":      false,
-            "errorMessage": "获取工具信息失败",
+            "errorMessage": fmt.Sprintf("获取工具信息失败: %v", err),
         })
         return
     }
 
+    logger.LogInfo("成功获取工具详情，ID: %d", numberId)
     c.JSON(http.StatusOK, gin.H{
         "success": true,
         "data":    tool,
