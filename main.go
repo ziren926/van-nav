@@ -72,7 +72,7 @@ func main() {
 		// 获取数据的路由
 		api.GET("/", handler.GetAllHandler)
 		// 获取用户信息
-
+        api.GET("/tools/:id", handler.GetToolDetailHandler)  // 新增这一行
 		api.POST("/login", handler.LoginHandler)
 		api.GET("/logout", handler.LogoutHandler)
 		api.GET("/img", handler.GetLogoImgHandler)
@@ -98,7 +98,7 @@ func main() {
 			admin.DELETE("/tool/:id", handler.DeleteToolHandler)
 
 			admin.PUT("/tool/:id", handler.UpdateToolHandler)
-            api.GET("/tools/:id", handler.GetToolDetailHandler)  // 新增这一行
+
 
 			admin.PUT("/tools/sort", handler.UpdateToolsSortHandler)
 
