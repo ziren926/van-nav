@@ -124,7 +124,8 @@ func InitDB() {
 		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN hide BOOLEAN;`)
 	}
 	migration_2024_12_13() // 只涉及 nav_catelog 表，所以可以放在这里
-	    migration_2025_01_19()
+    migration_2025_01_19()
+    migration_2025_01_19_fix()
 
 	// api token 表
 	sql_create_table = `

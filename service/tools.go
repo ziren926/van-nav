@@ -205,14 +205,16 @@ func GetToolById(id int64) (types.Tool, error) {
     logger.LogInfo("正在查询工具ID: %d", id)
 
     var tool types.Tool
-    // 简化 SQL 查询，暂时不包括时间相关字段
-    sql := `SELECT id, name, url, logo, catelog, desc, content, sort, hide
-            FROM nav_table WHERE id = ?`
+    sql := `SELECT
+        id, name, url, logo, catelog, desc, content, sort, hide,
+        post_title, post_content, post_created_at, post_updated_at
+        FROM nav_table WHERE id = ?`
 
     row := database.DB.QueryRow(sql, id)
 
     var (
         hide, sort interface{}
+        postCreatedAt, postUpdatedAt *string
     )
 
     err := row.Scan(
@@ -225,6 +227,10 @@ func GetToolById(id int64) (types.Tool, error) {
         &tool.Content,
         &sort,
         &hide,
+        &tool.PostTitle,
+        &tool.PostContent,
+        &postCreatedAt,
+        &postUpdatedAt,
     )
 
     if err != nil {
@@ -242,6 +248,14 @@ func GetToolById(id int64) (types.Tool, error) {
     }
     if hide != nil {
         tool.Hide = hide.(int64) != 0
+    }
+
+    // 设置默认值
+    if tool.PostTitle == "" {
+        tool.PostTitle = tool.Name
+    }
+    if tool.PostContent == "" {
+        tool.PostContent = tool.Desc
     }
 
     logger.LogInfo("成功获取工具信息: %+v", tool)
