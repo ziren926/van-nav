@@ -39,22 +39,30 @@ func ImportTools(data []types.Tool) {
 	}(data)
 
 }
+func UpdateTool(data types.UpdateToolDto) error {
+    // 除了更新工具本身之外，也要更新 img 表
+    sql_update_tool := `
+        UPDATE nav_table
+        SET name = ?, url = ?, logo = ?, catelog = ?, desc = ?, sort = ?, hide = ?
+        WHERE id = ?;
+        `
+    stmt, err := database.DB.Prepare(sql_update_tool)
+    if err != nil {
+        return err
+    }
+    defer stmt.Close()
 
-func UpdateTool(data types.UpdateToolDto) {
-	// 除了更新工具本身之外，也要更新 img 表
-	sql_update_tool := `
-		UPDATE nav_table
-		SET name = ?, url = ?, logo = ?, catelog = ?, desc = ?, sort = ?, hide = ?
-		WHERE id = ?;
-		`
-	stmt, err := database.DB.Prepare(sql_update_tool)
-	utils.CheckErr(err)
-	res, err := stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
-	utils.CheckErr(err)
-	_, err = res.RowsAffected()
-	utils.CheckErr(err)
-	// 更新 img
-	UpdateImg(data.Logo)
+    _, err = stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
+    if err != nil {
+        return err
+    }
+
+    // 更新 img
+    if data.Logo != "" {
+        UpdateImg(data.Logo)
+    }
+
+    return nil
 }
 
 func AddTool(data types.AddToolDto) (int64, error) {
@@ -188,4 +196,31 @@ func UpdateToolsSort(updates []types.UpdateToolsSortDto) error {
 	}
 
 	return tx.Commit()
+}
+
+
+func GetToolById(id int64) (types.Tool, error) {
+    var tool types.Tool
+    sql := `SELECT id, name, url, logo, catelog, desc, content, sort, hide
+            FROM nav_table WHERE id = ?`
+
+    row := database.DB.QueryRow(sql, id)
+    var hide, sort interface{}
+    err := row.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo,
+                    &tool.Catelog, &tool.Desc, &tool.Content,
+                    &sort, &hide)
+
+    if err != nil {
+        return tool, err
+    }
+
+    // 处理 sort 和 hide 字段
+    if sort != nil {
+        tool.Sort = int(sort.(int64))
+    }
+    if hide != nil {
+        tool.Hide = hide.(int64) != 0
+    }
+
+    return tool, nil
 }

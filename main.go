@@ -94,7 +94,10 @@ func main() {
 
 			admin.POST("/tool", handler.AddToolHandler)
 			admin.DELETE("/tool/:id", handler.DeleteToolHandler)
+
 			admin.PUT("/tool/:id", handler.UpdateToolHandler)
+            api.GET("/tools/:id", handler.GetToolDetailHandler)  // 新增这一行
+
 			admin.PUT("/tools/sort", handler.UpdateToolsSortHandler)
 
 			admin.POST("/catelog", handler.AddCatelogHandler)

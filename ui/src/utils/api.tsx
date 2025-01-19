@@ -77,7 +77,30 @@ export const FetchList = async () => {
 };
 
 
+// 获取工具详情
+export const fetchToolDetail = async (id: string | number) => {
+    try {
+        const { data } = await axios.get(`/api/tools/${id}`);
+        return data?.data || {};
+    } catch (error) {
+        console.error('获取工具详情失败:', error);
+        throw error;
+    }
+};
 
+// 更新工具详情
+export const updateToolDetail = async (id: string | number, payload: {
+    description?: string;
+    content?: string;
+}) => {
+    try {
+        const { data } = await axios.put(`/api/tools/${id}`, payload);
+        return data?.data || {};
+    } catch (error) {
+        console.error('更新工具详情失败:', error);
+        throw error;
+    }
+};
 
 export const login = async (username: string, password: string) => {
     const { data } = await axios.post("/api/login", {

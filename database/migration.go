@@ -55,3 +55,19 @@ func migration_2024_12_13() {
 		panic(err)
 	}
 }
+
+func migration_2025_01_19() {
+    // 添加帖子相关字段到 nav_table 表
+    if !columnExists("nav_table", "post_title") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN post_title TEXT;`)
+    }
+    if !columnExists("nav_table", "post_content") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN post_content TEXT;`)
+    }
+    if !columnExists("nav_table", "post_created_at") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN post_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`)
+    }
+    if !columnExists("nav_table", "post_updated_at") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN post_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`)
+    }
+}

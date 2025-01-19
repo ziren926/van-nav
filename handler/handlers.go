@@ -330,29 +330,6 @@ func DeleteToolHandler(c *gin.Context) {
 	})
 }
 
-func UpdateToolHandler(c *gin.Context) {
-	// 更新工具
-	var data types.UpdateToolDto
-	if err := c.ShouldBindJSON(&data); err != nil {
-		utils.CheckErr(err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success":      false,
-			"errorMessage": err.Error(),
-		})
-		return
-	}
-	service.UpdateTool(data)
-	if data.Logo == "" {
-		logger.LogInfo("%s 获取 logo: %s", data.Name, data.Logo)
-		go service.LazyFetchLogo(data.Url, int64(data.Id))
-	}
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "更新成功",
-	})
-}
-
 func AddCatelogHandler(c *gin.Context) {
 	// 添加分类
 	var data types.AddCatelogDto
@@ -477,4 +454,64 @@ func UpdateToolsSortHandler(c *gin.Context) {
 		"success": true,
 		"message": "更新排序成功",
 	})
+}
+
+func UpdateToolHandler(c *gin.Context) {
+    var data types.UpdateToolDto
+    if err := c.ShouldBindJSON(&data); err != nil {
+        utils.CheckErr(err)
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success":      false,
+            "errorMessage": err.Error(),
+        })
+        return
+    }
+
+    // 调用 UpdateTool 并处理返回的错误
+    err := service.UpdateTool(data)  // 修改这里，保存返回值
+    if err != nil {
+        utils.CheckErr(err)
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success":      false,
+            "errorMessage": err.Error(),
+        })
+        return
+    }
+
+    if data.Logo == "" {
+        logger.LogInfo("%s 获取 logo: %s", data.Name, data.Logo)
+        go service.LazyFetchLogo(data.Url, int64(data.Id))
+    }
+
+    c.JSON(200, gin.H{
+        "success": true,
+        "message": "更新成功",
+    })
+}
+
+// 添加获取工具详情的处理函数
+func GetToolDetailHandler(c *gin.Context) {
+    id := c.Param("id")
+    numberId, err := strconv.ParseInt(id, 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success":      false,
+            "errorMessage": "无效的ID",
+        })
+        return
+    }
+
+    tool, err := service.GetToolById(numberId)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{
+            "success":      false,
+            "errorMessage": "工具不存在",
+        })
+        return
+    }
+
+    c.JSON(200, gin.H{
+        "success": true,
+        "data":    tool,
+    })
 }

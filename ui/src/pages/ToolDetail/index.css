@@ -63,3 +63,56 @@
 .tool-detail-actions {
   margin-top: 32px;
 }
+
+/* ui/src/pages/ToolDetail.css */
+.tool-detail-container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.tool-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.tool-title-section h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.update-time {
+  font-size: 14px;
+  color: #666;
+}
+
+.tool-description {
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.tool-content {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* 增加暗色模式支持 */
+body.dark-mode .tool-detail-container .ant-card {
+  background-color: #222222;
+}
+
+body.dark-mode .tool-title-section h1 {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+body.dark-mode .update-time {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+body.dark-mode .tool-description {
+  color: rgba(255, 255, 255, 0.65);
+}

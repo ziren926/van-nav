@@ -13,6 +13,18 @@ type Setting struct {
 	JumpTargetBlank bool   `json:"jumpTargetBlank"`
 }
 
+type Tool struct {
+    Id      int64  `json:"id"`
+    Name    string `json:"name"`
+    Url     string `json:"url"`
+    Logo    string `json:"logo"`
+    Desc    string `json:"desc"`
+    Catelog string `json:"catelog"`
+    Content string `json:"content"` // 新增字段
+    Sort    int    `json:"sort"`
+    Hide    bool   `json:"hide"`
+}
+
 type Token struct {
 	Id       int    `json:"id"`
 	Name     string `json:"name"`
@@ -31,16 +43,6 @@ type Img struct {
 	Value string `json:"value"`
 }
 
-type Tool struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Url     string `json:"url"`
-	Logo    string `json:"logo"`
-	Catelog string `json:"catelog"`
-	Desc    string `json:"desc"`
-	Sort    int    `json:"sort"`
-	Hide    bool   `json:"hide"`
-}
 
 type Catelog struct {
 	Id   int    `json:"id"`
