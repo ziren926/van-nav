@@ -1,6 +1,5 @@
-// ui/src/pages/ToolDetail.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom'; // 添加 useHistory
 import { Card, Input, Button, Form, message, Spin } from 'antd';
 import ReactMarkdown from 'react-markdown';
 
@@ -8,6 +7,7 @@ const { TextArea } = Input;
 
 const ToolDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const history = useHistory(); // 初始化 useHistory
   const [isEditing, setIsEditing] = useState(false);
   const [tool, setTool] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -59,12 +59,21 @@ const ToolDetail: React.FC = () => {
           <>
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-bold">{tool?.name}</h1>
-              <Button
-                type={isEditing ? "primary" : "default"}
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? '预览' : '编辑'}
-              </Button>
+              <div>
+                <Button
+                  type={isEditing ? "primary" : "default"}
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  {isEditing ? '预览' : '编辑'}
+                </Button>
+                <Button
+                  type="link"
+                  className="ml-2"
+                  onClick={() => history.push(`/admin/tools/${id}/post`)}
+                >
+                  编辑帖子
+                </Button>
+              </div>
             </div>
             {isEditing ? (
               <Form

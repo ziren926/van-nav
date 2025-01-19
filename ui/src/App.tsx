@@ -4,9 +4,8 @@ import { App as AntApp, Menu, Spin } from 'antd';
 import { decodeTheme, initTheme } from './utils/theme';
 import './App.css';
 
-
 const ToolDetail = React.lazy(() => import('./pages/ToolDetail'));
-
+const PostEditor = React.lazy(() => import('./pages/PostEditor'));
 
 // 使用 React.lazy 懒加载组件
 const Home = React.lazy(() => import('./pages/Home'));
@@ -114,6 +113,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/tool/:id" element={<Layout><ToolDetail /></Layout>} />
+            <Route path="/admin/tools/:id/post" element={<Layout><PostEditor /></Layout>} />
             {/* 暂时注释掉未实现的路由 */}
             {/*
             <Route path="/popular" element={<Layout><Popular /></Layout>} />
