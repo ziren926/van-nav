@@ -8,3 +8,43 @@
 .span-3 {
   grid-column-start: span 3;
 }
+
+.nav-menu {
+  margin-bottom: 20px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nav-menu.ant-menu-horizontal {
+  border-bottom: none;
+  line-height: 46px;
+}
+
+.nav-menu.light {
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.nav-menu.dark {
+  background: #141414;
+  border-bottom: 1px solid #303030;
+}
+
+.nav-menu .ant-menu-item {
+  padding: 0 20px;
+}
+
+.nav-menu .ant-menu-item a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout > *:not(.nav-menu) {
+  flex: 1;
+}

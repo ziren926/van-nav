@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { App as AntApp } from 'antd';
-import { Spin } from 'antd';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { App as AntApp, Menu, Spin } from 'antd';
 import { decodeTheme, initTheme } from './utils/theme';
 import './App.css';
 
@@ -16,6 +15,41 @@ const Catelog = React.lazy(() => import('./pages/admin/tabs/Catelog').then(modul
 const ApiToken = React.lazy(() => import('./pages/admin/tabs/ApiToken').then(module => ({ default: module.ApiToken })));
 const Setting = React.lazy(() => import('./pages/admin/tabs/Setting').then(module => ({ default: module.Setting })));
 
+// 导航栏组件
+const Navigation = () => {
+  const [current, setCurrent] = useState('home');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const theme = initTheme();
+    const decodedTheme = decodeTheme(theme);
+    setIsDarkMode(decodedTheme.includes('dark'));
+  }, []);
+
+  const handleClick = (e: { key: string }) => {
+    setCurrent(e.key);
+  };
+
+  return (
+    <Menu
+      mode="horizontal"
+      className={`nav-menu ${isDarkMode ? 'dark' : 'light'}`}
+      selectedKeys={[current]}
+      onClick={handleClick}
+    >
+      <Menu.Item key="home">
+        <Link to="/">首页</Link>
+      </Menu.Item>
+      <Menu.Item key="popular">
+        <Link to="/popular">Chatgpt-Task介紹</Link>
+      </Menu.Item>
+      <Menu.Item key="new">
+        <Link to="/new">我的收藏</Link>
+      </Menu.Item>
+    </Menu>
+  );
+};
+
 // 加载中的占位组件
 const LoadingFallback = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -25,7 +59,6 @@ const LoadingFallback = () => {
     const decodedTheme = decodeTheme(theme);
     setIsDarkMode(decodedTheme.includes('dark'));
 
-    // 监听主题变化
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.target instanceof HTMLElement) {
@@ -59,13 +92,28 @@ const LoadingFallback = () => {
   );
 };
 
+// 页面布局组件
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="layout">
+      <Navigation />
+      {children}
+    </div>
+  );
+};
+
 function App() {
   return (
     <AntApp>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Layout><Home /></Layout>} />
+            {/* 暂时注释掉未实现的路由 */}
+            {/*
+            <Route path="/popular" element={<Layout><Popular /></Layout>} />
+            <Route path="/new" element={<Layout><New /></Layout>} />
+            */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPage />}>
               <Route index element={<Tools />} />
@@ -82,5 +130,3 @@ function App() {
 }
 
 export default App;
-
-
