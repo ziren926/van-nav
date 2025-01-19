@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/types"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/types"
 )
 
 func CheckErr(err error) {

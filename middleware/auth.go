@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/utils"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/utils"
 )
 
 // 定义一个 JWT 的中间件, 除了校验 jtw，还要校验之前签发的 api token 只要一样就放行。

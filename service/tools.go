@@ -2,11 +2,13 @@ package service
 
 import (
 	"sync"
+	"fmt"
 
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/types"
-	"github.com/mereith/nav/utils"
+
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/types"
+	"github.com/ziren926/van-nav/utils"
 )
 
 func ImportTools(data []types.Tool) {
@@ -200,21 +202,41 @@ func UpdateToolsSort(updates []types.UpdateToolsSortDto) error {
 
 
 func GetToolById(id int64) (types.Tool, error) {
+    logger.LogInfo("正在查询工具ID: %d", id)
+
     var tool types.Tool
+    // 简化 SQL 查询，暂时不包括时间相关字段
     sql := `SELECT id, name, url, logo, catelog, desc, content, sort, hide
             FROM nav_table WHERE id = ?`
 
     row := database.DB.QueryRow(sql, id)
-    var hide, sort interface{}
-    err := row.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo,
-                    &tool.Catelog, &tool.Desc, &tool.Content,
-                    &sort, &hide)
+
+    var (
+        hide, sort interface{}
+    )
+
+    err := row.Scan(
+        &tool.Id,
+        &tool.Name,
+        &tool.Url,
+        &tool.Logo,
+        &tool.Catelog,
+        &tool.Desc,
+        &tool.Content,
+        &sort,
+        &hide,
+    )
 
     if err != nil {
+        if err.Error() == "sql: no rows in result set" {
+            logger.LogError("工具不存在, ID: %d", id)
+            return tool, fmt.Errorf("工具不存在")
+        }
+        logger.LogError("查询工具出错: %v", err)
         return tool, err
     }
 
-    // 处理 sort 和 hide 字段
+    // 处理可空字段
     if sort != nil {
         tool.Sort = int(sort.(int64))
     }
@@ -222,5 +244,6 @@ func GetToolById(id int64) (types.Tool, error) {
         tool.Hide = hide.(int64) != 0
     }
 
+    logger.LogInfo("成功获取工具信息: %+v", tool)
     return tool, nil
 }

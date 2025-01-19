@@ -8,10 +8,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/handler"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/middleware"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/handler"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/middleware"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"

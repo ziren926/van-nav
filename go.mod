@@ -1,4 +1,4 @@
-module github.com/mereith/nav
+module github.com/ziren926/van-nav
 
 go 1.19
 

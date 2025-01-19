@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/service"
-	"github.com/mereith/nav/types"
-	"github.com/mereith/nav/utils"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/service"
+	"github.com/ziren926/van-nav/types"
+	"github.com/ziren926/van-nav/utils"
 )
 
 func ExportToolsHandler(c *gin.Context) {
@@ -494,23 +494,31 @@ func GetToolDetailHandler(c *gin.Context) {
     id := c.Param("id")
     numberId, err := strconv.ParseInt(id, 10, 64)
     if err != nil {
+        logger.LogError("无效的ID格式: %s", id)
         c.JSON(http.StatusBadRequest, gin.H{
             "success":      false,
-            "errorMessage": "无效的ID",
+            "errorMessage": "无效的ID格式",
         })
         return
     }
 
     tool, err := service.GetToolById(numberId)
     if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{
+        if err.Error() == "工具不存在" {
+            c.JSON(http.StatusNotFound, gin.H{
+                "success":      false,
+                "errorMessage": "工具不存在",
+            })
+            return
+        }
+        c.JSON(http.StatusInternalServerError, gin.H{
             "success":      false,
-            "errorMessage": "工具不存在",
+            "errorMessage": "获取工具信息失败",
         })
         return
     }
 
-    c.JSON(200, gin.H{
+    c.JSON(http.StatusOK, gin.H{
         "success": true,
         "data":    tool,
     })

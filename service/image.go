@@ -4,11 +4,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/goscraper"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/types"
-	"github.com/mereith/nav/utils"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/goscraper"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/types"
+	"github.com/ziren926/van-nav/utils"
 )
 
 func getIcon(url string) string {

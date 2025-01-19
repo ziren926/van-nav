@@ -71,3 +71,18 @@ func migration_2025_01_19() {
         DB.Exec(`ALTER TABLE nav_table ADD COLUMN post_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`)
     }
 }
+
+func migration_2025_01_19_fix() {
+    // 1. 添加 content 字段（如果不存在）
+    if !columnExists("nav_table", "content") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN content TEXT;`)
+    }
+
+    // 2. 确保所有必需字段都存在
+    if !columnExists("nav_table", "sort") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN sort INTEGER DEFAULT 0;`)
+    }
+    if !columnExists("nav_table", "hide") {
+        DB.Exec(`ALTER TABLE nav_table ADD COLUMN hide BOOLEAN DEFAULT 0;`)
+    }
+}

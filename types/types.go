@@ -1,5 +1,6 @@
 package types
 
+
 // 默认是 0
 type Setting struct {
 	Id              int    `json:"id"`
@@ -14,15 +15,17 @@ type Setting struct {
 }
 
 type Tool struct {
-    Id      int64  `json:"id"`
-    Name    string `json:"name"`
-    Url     string `json:"url"`
-    Logo    string `json:"logo"`
-    Desc    string `json:"desc"`
-    Catelog string `json:"catelog"`
-    Content string `json:"content"` // 新增字段
-    Sort    int    `json:"sort"`
-    Hide    bool   `json:"hide"`
+    Id          int64  `json:"id"`
+    Name        string `json:"name"`
+    Url         string `json:"url"`
+    Logo        string `json:"logo"`
+    Desc        string `json:"desc"`
+    Catelog     string `json:"catelog"`
+    Content     string `json:"content,omitempty"`
+    Sort        int    `json:"sort"`
+    Hide        bool   `json:"hide"`
+    PostTitle   string `json:"post_title,omitempty"`
+    PostContent string `json:"post_content,omitempty"`
 }
 
 type Token struct {

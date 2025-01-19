@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 COPY --from=frontendbuilder /app/public /app/public
 # 删除 pnpm install .，只保留 Go 相关的命令
-RUN cd /app && ls -la && go mod tidy && go build
+RUN cd /app && ls -la && go mod tidy && go build -o nav
 
 # Stage 3: Final image
 FROM alpine:latest

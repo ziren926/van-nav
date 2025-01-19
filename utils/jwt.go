@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/types"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/types"
 )
 
 func RandomJWTKey() string {

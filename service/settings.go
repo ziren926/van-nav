@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/types"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/types"
 )
 
 func GetSetting() types.Setting {

@@ -5,7 +5,7 @@ import (
     "time"
 
     "github.com/gin-gonic/gin"
-    "github.com/mereith/nav/database"
+    "github.com/ziren926/van-nav/database"
 )
 
 // GetPostHandler 获取工具的帖子内容

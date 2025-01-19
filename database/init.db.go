@@ -6,8 +6,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/mereith/nav/logger"
-	"github.com/mereith/nav/utils"
+	"github.com/ziren926/van-nav/logger"
+	"github.com/ziren926/van-nav/utils"
 )
 
 var DB *sql.DB

@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/mereith/nav/database"
-	"github.com/mereith/nav/types"
-	"github.com/mereith/nav/utils"
+	"github.com/ziren926/van-nav/database"
+	"github.com/ziren926/van-nav/types"
+	"github.com/ziren926/van-nav/utils"
 )
 
 func UpdateCatelog(data types.UpdateCatelogDto) {
