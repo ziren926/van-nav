@@ -83,6 +83,8 @@ func main() {
 			admin.POST("/apiToken", handler.AddApiTokenHandler)
 			admin.DELETE("/apiToken/:id", handler.DeleteApiTokenHandler)
 			admin.GET("/all", handler.GetAdminAllDataHandler)
+			admin.GET("/tool/:id/post", handler.GetPostHandler)
+            admin.PUT("/tool/:id/post", handler.UpdatePostHandler)
 
 			admin.GET("/exportTools", handler.ExportToolsHandler)
 
