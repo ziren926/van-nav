@@ -69,7 +69,7 @@ func main() {
 	// 嵌入文件夹
 	router.GET("/manifest.json", handler.ManifastHanlder)
 	router.Use(Serve("/", BinaryFileSystem(fs, "public")))
-	api := router.Group("/api/v1")
+	api := router.Group("/api")
 	{
 		// 获取数据的路由
 		api.GET("/", handler.GetAllHandler)

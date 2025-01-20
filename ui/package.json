@@ -26,12 +26,12 @@
     "react-helmet": "^6.1.0",
     "react-router-dom": "^7.0.2",
     "react-scripts": "5.0.1",
-    "typescript": "^5.7.2",
+    "typescript": "^4.9.5",
     "web-vitals": "^4.2.4"
   },
   "proxy": "http://localhost:6412",
   "scripts": {
-    "start": "PORT=2333 DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
+    "start": "set PORT=2333 && set DANGEROUSLY_DISABLE_HOST_CHECK=true && react-scripts start",
     "start-win": "set PORT=2333 && react-scripts start",
     "build": "react-scripts build && workbox generateSW workbox-config.js",
     "test": "react-scripts test",
