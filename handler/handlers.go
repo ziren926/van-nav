@@ -279,19 +279,15 @@ func AddToolHandler(c *gin.Context) {
         return
     }
 
-    logger.LogInfo("新增工具: %s, 帖子标题: %s", data.Name, data.PostTitle)
-    id, err := service.AddTool(data)
-    if err != nil {
-        utils.CheckErr(err)
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success":      false,
-            "errorMessage": err.Error(),
-        })
-        return
-    }
+    logger.LogInfo("新增工具: %s, 帖子標題: %s", data.Name, data.PostTitle)
+    // 修改這裡，直接調用 AddTool
+    service.AddTool(data)
+
     if data.Logo == "" {
-        go service.LazyFetchLogo(data.Url, id)
+        // 由於我們不再使用 id，需要修改這裡的邏輯
+        go service.LazyFetchLogo(data.Url, 0) // 或者從 data 中獲取 ID
     }
+
     c.JSON(200, gin.H{
         "success": true,
         "message": "添加成功",

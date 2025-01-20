@@ -6,7 +6,7 @@ import (
     "strconv"
 
     "github.com/gin-gonic/gin"
-    "github.com/ziren926/van-nav/database"
+    "github.com/ziren926/van-nav/types"
     "github.com/ziren926/van-nav/logger"
     "github.com/ziren926/van-nav/service"
     "github.com/ziren926/van-nav/utils"
