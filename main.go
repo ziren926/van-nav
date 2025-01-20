@@ -63,16 +63,18 @@ func main() {
 	database.InitDB()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	router.Use(CORS())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	// 嵌入文件夹
 	router.GET("/manifest.json", handler.ManifastHanlder)
 	router.Use(Serve("/", BinaryFileSystem(fs, "public")))
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 	{
 		// 获取数据的路由
 		api.GET("/", handler.GetAllHandler)
 		// 获取用户信息
-        api.GET("/tools/:id", handler.GetToolDetailHandler)  // 新增这一行
+        api.GET("/tool/:id", handler.GetToolDetailHandler)  // 新增这一行
 		api.POST("/login", handler.LoginHandler)
 		api.GET("/logout", handler.LogoutHandler)
 		api.GET("/img", handler.GetLogoImgHandler)
@@ -100,7 +102,7 @@ func main() {
 			admin.PUT("/tool/:id", handler.UpdateToolHandler)
 
 
-			admin.PUT("/tools/sort", handler.UpdateToolsSortHandler)
+			admin.PUT("/tool/sort", handler.UpdateToolsSortHandler)
 
 			admin.POST("/catelog", handler.AddCatelogHandler)
 			admin.DELETE("/catelog/:id", handler.DeleteCatelogHandler)
