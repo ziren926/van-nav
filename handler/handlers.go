@@ -147,26 +147,26 @@ func UpdateUserHandler(c *gin.Context) {
 }
 
 func GetAllHandler(c *gin.Context) {
-	tools := service.GetAllTool()
-	// 获取全部数据
-	catelogs := service.GetAllCatelog()
-	if !utils.IsLogin(c) {
-		// 过滤掉隐藏工具
-		tools = utils.FilterHideTools(tools, catelogs)
-	}
-	if !utils.IsLogin(c) {
-		// 过滤掉隐藏分类
-		catelogs = utils.FilterHideCates(catelogs)
-	}
-	setting := service.GetSetting()
-	c.JSON(200, gin.H{
-		"success": true,
-		"data": gin.H{
-			"tools":    tools,
-			"catelogs": catelogs,
-			"setting":  setting,
-		},
-	})
+    tools := service.GetAllTool()
+    // 获取全部数据，包括帖子内容
+    catelogs := service.GetAllCatelog()
+    if !utils.IsLogin(c) {
+        // 过滤掉隐藏工具
+        tools = utils.FilterHideTools(tools, catelogs)
+    }
+    if !utils.IsLogin(c) {
+        // 过滤掉隐藏分类
+        catelogs = utils.FilterHideCates(catelogs)
+    }
+    setting := service.GetSetting()
+    c.JSON(200, gin.H{
+        "success": true,
+        "data": gin.H{
+            "tools":    tools,
+            "catelogs": catelogs,
+            "setting":  setting,
+        },
+    })
 }
 
 func GetLogoImgHandler(c *gin.Context) {
@@ -268,34 +268,34 @@ func LogoutHandler(c *gin.Context) {
 }
 
 func AddToolHandler(c *gin.Context) {
-	// 添加工具
-	var data types.AddToolDto
-	if err := c.ShouldBindJSON(&data); err != nil {
-		utils.CheckErr(err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success":      false,
-			"errorMessage": err.Error(),
-		})
-		return
-	}
+    // 添加工具，支持帖子相关字段
+    var data types.AddToolDto
+    if err := c.ShouldBindJSON(&data); err != nil {
+        utils.CheckErr(err)
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success":      false,
+            "errorMessage": err.Error(),
+        })
+        return
+    }
 
-	logger.LogInfo("%s 获取 logo: %s", data.Name, data.Logo)
-	id, err := service.AddTool(data)
-	if err != nil {
-		utils.CheckErr(err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success":      false,
-			"errorMessage": err.Error(),
-		})
-		return
-	}
-	if data.Logo == "" {
-		go service.LazyFetchLogo(data.Url, id)
-	}
-	c.JSON(200, gin.H{
-		"success": true,
-		"message": "添加成功",
-	})
+    logger.LogInfo("新增工具: %s, 帖子标题: %s", data.Name, data.PostTitle)
+    id, err := service.AddTool(data)
+    if err != nil {
+        utils.CheckErr(err)
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success":      false,
+            "errorMessage": err.Error(),
+        })
+        return
+    }
+    if data.Logo == "" {
+        go service.LazyFetchLogo(data.Url, id)
+    }
+    c.JSON(200, gin.H{
+        "success": true,
+        "message": "添加成功",
+    })
 }
 
 func DeleteToolHandler(c *gin.Context) {
@@ -467,8 +467,8 @@ func UpdateToolHandler(c *gin.Context) {
         return
     }
 
-    // 调用 UpdateTool 并处理返回的错误
-    err := service.UpdateTool(data)  // 修改这里，保存返回值
+    logger.LogInfo("更新工具: %s, 帖子标题: %s", data.Name, data.PostTitle)
+    err := service.UpdateTool(data)
     if err != nil {
         utils.CheckErr(err)
         c.JSON(http.StatusInternalServerError, gin.H{
@@ -517,6 +517,15 @@ func GetToolDetailHandler(c *gin.Context) {
         c.JSON(http.StatusInternalServerError, gin.H{
             "success":      false,
             "errorMessage": fmt.Sprintf("获取工具信息失败: %v", err),
+        })
+        return
+    }
+
+    // 根据是否登录返回不同级别的信息
+    if !utils.IsLogin(c) && tool.Hide {
+        c.JSON(http.StatusForbidden, gin.H{
+            "success":      false,
+            "errorMessage": "无权访问该工具",
         })
         return
     }

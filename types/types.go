@@ -1,5 +1,6 @@
 package types
 
+import "time"
 
 // 默认是 0
 type Setting struct {
@@ -26,6 +27,22 @@ type Tool struct {
     Hide        bool   `json:"hide"`
     PostTitle   string `json:"post_title,omitempty"`
     PostContent string `json:"post_content,omitempty"`
+     PostCreatedAt time.Time `json:"post_created_at"`  // 帖子创建时间
+        PostUpdatedAt time.Time `json:"post_updated_at"`  // 帖子更新时间
+}
+
+type UpdateToolDto struct {
+    Id          int    `json:"id"`
+    Name        string `json:"name"`
+    Url         string `json:"url"`
+    Logo        string `json:"logo"`
+    Desc        string `json:"desc"`
+    Catelog     string `json:"catelog"`
+    Sort        int    `json:"sort"`
+    Hide        bool   `json:"hide"`
+    Content     string `json:"content"`
+    PostTitle   string `json:"post_title"`
+    PostContent string `json:"post_content"`
 }
 
 type Token struct {
