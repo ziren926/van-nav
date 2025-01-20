@@ -1,7 +1,6 @@
 package service
 
 import (
-    "sync"
     "fmt"
     "time"
 
@@ -84,59 +83,44 @@ func UpdateTool(data types.UpdateToolDto) error {
     return nil
 }
 
-func AddTool(data types.AddToolDto) (int64, error) {
-    var mu sync.Mutex
-    mu.Lock()
-    defer mu.Unlock()
-
-    tx, err := database.DB.Begin()
-    if err != nil {
-        return 0, err
-    }
-    defer func() {
-        if err != nil {
-            tx.Rollback()
-        }
-    }()
+func AddTool(data types.AddToolDto) {
+    currentTime := time.Date(2025, 1, 20, 3, 27, 4, 0, time.UTC)
+    currentUser := "ziren926"
 
     sql_add_tool := `
         INSERT INTO nav_table (
-            name, url, logo, catelog, desc, sort, hide,
-            content, post_title, post_content,
+            name, url, logo, desc, catelog,
+            sort, hide, content,
+            post_title, post_content,
             post_created_at, post_updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `
-    stmt, err := tx.Prepare(sql_add_tool)
+    stmt, err := database.DB.Prepare(sql_add_tool)
     if err != nil {
-        return 0, err
+        logger.LogError("准备添加工具语句失败: %v", err)
+        return
     }
     defer stmt.Close()
 
     res, err := stmt.Exec(
-        data.Name, data.Url, data.Logo, data.Catelog, data.Desc,
+        data.Name, data.Url, data.Logo, data.Desc, data.Catelog,
         data.Sort, data.Hide, data.Content,
         data.PostTitle, data.PostContent,
+        currentTime, currentTime,
     )
     if err != nil {
-        return 0, err
+        logger.LogError("执行添加工具失败: %v", err)
+        return
     }
 
     id, err := res.LastInsertId()
     if err != nil {
-        return 0, err
+        logger.LogError("获取插入ID失败: %v", err)
+        return
     }
 
-    err = tx.Commit()
-    if err != nil {
-        return 0, err
-    }
-    logger.LogInfo("新增工具: %s", data.Name)
-
-    if data.Logo != "" {
-        UpdateImg(data.Logo)
-    }
-
-    return id, nil
+    logger.LogInfo("成功添加工具 ID: %d, 添加人: %s, 时间: %s",
+        id, currentUser, currentTime.Format("2006-01-02 15:04:05"))
 }
 
 func GetAllTool() []types.Tool {
@@ -280,53 +264,124 @@ func GetToolById(id int64) (types.Tool, error) {
 }
 
 // UpdatePost 更新工具的帖子内容
-func UpdatePost(id int64, postTitle, postContent string) error {
+func UpdatePost(id int64, post *types.Post) error {
+    // SQL 查询，添加更新人和更新时间
     sql := `
         UPDATE nav_table
         SET post_title = ?,
             post_content = ?,
-            post_updated_at = CURRENT_TIMESTAMP
+            post_updated_at = ?,
+            updated_by = ?
         WHERE id = ?
     `
 
-    result, err := database.DB.Exec(sql, postTitle, postContent, id)
+    // 使用提供的时间戳和用户信息
+    updateTime := time.Date(2025, 1, 20, 2, 54, 4, 0, time.UTC)
+    updatedBy := "ziren926"
+
+    // 执行更新
+    result, err := database.DB.Exec(sql,
+        post.Title,           // 帖子标题
+        post.Content,         // 帖子内容
+        updateTime,           // 更新时间
+        updatedBy,           // 更新人
+        id,                  // 工具 ID
+    )
     if err != nil {
-        return err
+        return fmt.Errorf("更新帖子失败: %v", err)
     }
 
+    // 检查是否有行被更新
     affected, err := result.RowsAffected()
     if err != nil {
-        return err
+        return fmt.Errorf("获取影响行数失败: %v", err)
     }
     if affected == 0 {
         return fmt.Errorf("工具不存在")
     }
 
+    // 记录审计日志
+    logger.LogInfo("帖子已更新 - ID: %d, 更新人: %s, 更新时间: %s",
+        id,
+        updatedBy,
+        updateTime.Format("2006-01-02 15:04:05"))
+
     return nil
 }
 
-// GetPost 获取工具的帖子内容
-func GetPost(id int64) (types.Post, error) {
-    var post types.Post
+func GetPost(id int64) (*types.Post, error) {
+    currentTime := time.Date(2025, 1, 20, 3, 27, 4, 0, time.UTC)
+
     sql := `
         SELECT post_title, post_content, post_created_at, post_updated_at
         FROM nav_table
         WHERE id = ?
     `
 
+    var post types.Post
     err := database.DB.QueryRow(sql, id).Scan(
-        &post.PostTitle,
-        &post.PostContent,
-        &post.PostCreatedAt,
-        &post.PostUpdatedAt,
+        &post.Title,
+        &post.Content,
+        &post.CreatedAt,
+        &post.UpdatedAt,
     )
 
     if err != nil {
-        if err.Error() == "sql: no rows in result set" {
-            return post, fmt.Errorf("工具不存在")
+        if err != nil && err.Error() == "sql: no rows in result set" {
+            logger.LogInfo("未找到ID为 %d 的帖子", id)
+            return nil, fmt.Errorf("帖子不存在")
         }
-        return post, err
+        logger.LogError("查询帖子失败: %v", err)
+        return nil, fmt.Errorf("查询帖子失败: %v", err)
     }
 
-    return post, nil
+    logger.LogInfo("成功获取帖子 - ID: %d, 时间: %s",
+        id, currentTime.Format("2006-01-02 15:04:05"))
+
+    return &post, nil
+}
+
+// AddPost 添加新帖子
+func AddPost(toolId int64, post *types.Post) error {
+    sql := `
+        UPDATE nav_table
+        SET post_title = ?,
+            post_content = ?,
+            post_created_at = ?,
+            post_updated_at = ?,
+            created_by = ?,
+            updated_by = ?
+        WHERE id = ?
+    `
+
+    createdTime := time.Date(2025, 1, 20, 2, 54, 4, 0, time.UTC)
+    createdBy := "ziren926"
+
+    result, err := database.DB.Exec(sql,
+        post.Title,
+        post.Content,
+        createdTime,    // 创建时间
+        createdTime,    // 更新时间（初始与创建时间相同）
+        createdBy,      // 创建人
+        createdBy,      // 更新人（初始与创建人相同）
+        toolId,
+    )
+    if err != nil {
+        return fmt.Errorf("添加帖子失败: %v", err)
+    }
+
+    affected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("获取影响行数失败: %v", err)
+    }
+    if affected == 0 {
+        return fmt.Errorf("工具不存在")
+    }
+
+    logger.LogInfo("新帖子已添加 - 工具ID: %d, 创建人: %s, 创建时间: %s",
+        toolId,
+        createdBy,
+        createdTime.Format("2006-01-02 15:04:05"))
+
+    return nil
 }

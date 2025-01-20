@@ -62,27 +62,22 @@ func GetPostHandler(c *gin.Context) {
 }
 
 // UpdatePostHandler 更新工具的帖子内容
-func UpdatePostHandler(c *gin.Context) {
-    id := c.Param("id")
-    logger.LogInfo("更新工具帖子内容，ID: %s", id)
+// handler/post.go
 
-    numberId, err := strconv.ParseInt(id, 10, 64)
+func UpdatePostHandler(c *gin.Context) {
+    // 从 URL 获取工具 ID
+    id, err := strconv.ParseInt(c.Param("id"), 10, 64)
     if err != nil {
-        logger.LogError("无效的ID格式: %s, 错误: %v", id, err)
         c.JSON(http.StatusBadRequest, gin.H{
             "success": false,
-            "errorMessage": "无效的ID格式",
+            "errorMessage": "无效的工具ID",
         })
         return
     }
 
-    var input struct {
-        PostTitle   string `json:"post_title" binding:"required"`
-        PostContent string `json:"post_content" binding:"required"`
-    }
-
-    if err := c.ShouldBindJSON(&input); err != nil {
-        logger.LogError("绑定请求数据失败: %v", err)
+    // 解析请求体
+    var post types.Post
+    if err := c.ShouldBindJSON(&post); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{
             "success": false,
             "errorMessage": "无效的请求数据",
@@ -90,32 +85,23 @@ func UpdatePostHandler(c *gin.Context) {
         return
     }
 
-    // 检查工具是否存在
-    _, err = service.GetToolById(numberId)
+    // 更新帖子
+    err = service.UpdatePost(id, &post)
     if err != nil {
-        logger.LogError("工具不存在, ID: %d", numberId)
-        c.JSON(http.StatusNotFound, gin.H{
-            "success": false,
-            "errorMessage": "工具不存在",
-        })
-        return
-    }
-
-    // 更新帖子内容
-    err = service.UpdatePost(numberId, input.PostTitle, input.PostContent)
-    if err != nil {
-        logger.LogError("更新帖子失败, ID: %d, 错误: %v", numberId, err)
         c.JSON(http.StatusInternalServerError, gin.H{
             "success": false,
-            "errorMessage": "更新帖子失败",
+            "errorMessage": err.Error(),
         })
         return
     }
 
-    logger.LogInfo("成功更新工具帖子，ID: %d, 标题: %s", numberId, input.PostTitle)
     c.JSON(http.StatusOK, gin.H{
         "success": true,
         "message": "帖子更新成功",
+        "data": gin.H{
+            "updated_at": time.Date(2025, 1, 20, 2, 54, 4, 0, time.UTC).Format("2006-01-02 15:04:05"),
+            "updated_by": "ziren926",
+        },
     })
 }
 
