@@ -1,147 +1,146 @@
+// handler/post.go
 package handler
 
 import (
-    "net/http"
-    "time"
-    "strconv"
-
     "github.com/gin-gonic/gin"
+    "github.com/ziren926/van-nav/database"
     "github.com/ziren926/van-nav/types"
-    "github.com/ziren926/van-nav/logger"
-    "github.com/ziren926/van-nav/service"
-    "github.com/ziren926/van-nav/utils"
+    "net/http"
+    "strconv"
+    "time"
 )
 
-// GetPostHandler 获取工具的帖子内容
-func GetPostHandler(c *gin.Context) {
-    id := c.Param("id")
-    logger.LogInfo("获取工具帖子内容，ID: %s", id)
-
-    numberId, err := strconv.ParseInt(id, 10, 64)
-    if err != nil {
-        logger.LogError("无效的ID格式: %s, 错误: %v", id, err)
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success": false,
-            "errorMessage": "无效的ID格式",
-        })
-        return
-    }
-
-    post, err := service.GetPost(numberId)
-    if err != nil {
-        logger.LogError("获取帖子失败, ID: %d, 错误: %v", numberId, err)
-        if err.Error() == "工具不存在" {
-            c.JSON(http.StatusNotFound, gin.H{
-                "success": false,
-                "errorMessage": "帖子不存在",
-            })
-            return
-        }
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "success": false,
-            "errorMessage": "获取帖子失败",
-        })
-        return
-    }
-
-    // 检查用户权限
-    tool, err := service.GetToolById(numberId)
-    if err == nil && tool.Hide && !utils.IsLogin(c) {
-        c.JSON(http.StatusForbidden, gin.H{
-            "success": false,
-            "errorMessage": "无权访问该帖子",
-        })
-        return
-    }
-
-    logger.LogInfo("成功获取工具帖子，ID: %d", numberId)
-    c.JSON(http.StatusOK, gin.H{
-        "success": true,
-        "data": post,
-    })
-}
-
-// UpdatePostHandler 更新工具的帖子内容
-// handler/post.go
-
-func UpdatePostHandler(c *gin.Context) {
-    // 从 URL 获取工具 ID
-    id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success": false,
-            "errorMessage": "无效的工具ID",
-        })
-        return
-    }
-
-    // 解析请求体
+// AddPostHandler 添加新帖子
+func AddPostHandler(c *gin.Context) {
     var post types.Post
     if err := c.ShouldBindJSON(&post); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success": false,
-            "errorMessage": "无效的请求数据",
-        })
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
-    // 更新帖子
-    err = service.UpdatePost(id, &post)
+    // 使用事务确保数据一致性
+    tx, err := database.DB.Begin()
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "success": false,
-            "errorMessage": err.Error(),
-        })
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{
-        "success": true,
-        "message": "帖子更新成功",
-        "data": gin.H{
-            "updated_at": time.Date(2025, 1, 20, 2, 54, 4, 0, time.UTC).Format("2006-01-02 15:04:05"),
-            "updated_by": "ziren926",
-        },
-    })
+    // 准备SQL语句
+    stmt, err := tx.Prepare(`
+        INSERT INTO posts (title, content, create_time, update_time)
+        VALUES (?, ?, datetime('now'), datetime('now'))
+    `)
+    if err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer stmt.Close()
+
+    // 执行SQL语句
+    result, err := stmt.Exec(post.Title, post.Content)
+    if err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // 提交事务
+    if err := tx.Commit(); err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // 获取新插入的ID
+    id, _ := result.LastInsertId()
+    post.ID = id
+    post.CreateTime = time.Now()
+    post.UpdateTime = time.Now()
+
+    c.JSON(http.StatusOK, post)
 }
 
-// GetPostWithContentHandler 获取工具的所有内容（包括帖子和基本信息）
-func GetPostWithContentHandler(c *gin.Context) {
+// DeletePostHandler 删除帖子
+func DeletePostHandler(c *gin.Context) {
     id := c.Param("id")
-    logger.LogInfo("获取工具完整内容，ID: %s", id)
-
-    numberId, err := strconv.ParseInt(id, 10, 64)
+    postID, err := strconv.ParseInt(id, 10, 64)
     if err != nil {
-        logger.LogError("无效的ID格式: %s, 错误: %v", id, err)
-        c.JSON(http.StatusBadRequest, gin.H{
-            "success": false,
-            "errorMessage": "无效的ID格式",
-        })
+        c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
         return
     }
 
-    tool, err := service.GetToolById(numberId)
+    result, err := database.DB.Exec("DELETE FROM posts WHERE id = ?", postID)
     if err != nil {
-        logger.LogError("获取工具失败, ID: %d, 错误: %v", numberId, err)
-        c.JSON(http.StatusNotFound, gin.H{
-            "success": false,
-            "errorMessage": "工具不存在",
-        })
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    // 检查用户权限
-    if tool.Hide && !utils.IsLogin(c) {
-        c.JSON(http.StatusForbidden, gin.H{
-            "success": false,
-            "errorMessage": "无权访问该内容",
-        })
+    rowsAffected, _ := result.RowsAffected()
+    if rowsAffected == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "帖子不存在"})
         return
     }
 
-    logger.LogInfo("成功获取工具完整内容，ID: %d", numberId)
-    c.JSON(http.StatusOK, gin.H{
-        "success": true,
-        "data": tool,
-    })
+    c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
+}
+
+// UpdatePostHandler 更新帖子
+func UpdatePostHandler(c *gin.Context) {
+    id := c.Param("id")
+    postID, err := strconv.ParseInt(id, 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "无效的ID"})
+        return
+    }
+
+    var post types.Post
+    if err := c.ShouldBindJSON(&post); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    result, err := database.DB.Exec(`
+        UPDATE posts
+        SET title = ?, content = ?, update_time = datetime('now')
+        WHERE id = ?
+    `, post.Title, post.Content, postID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    rowsAffected, _ := result.RowsAffected()
+    if rowsAffected == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "帖子不存在"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "更新成功"})
+}
+
+// GetPostsHandler 获取所有帖子
+func GetPostsHandler(c *gin.Context) {
+    posts := []types.Post{}
+    rows, err := database.DB.Query(`
+        SELECT id, title, content, create_time, update_time
+        FROM posts
+        ORDER BY create_time DESC
+    `)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var post types.Post
+        err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreateTime, &post.UpdateTime)
+        if err != nil {
+            continue
+        }
+        posts = append(posts, post)
+    }
+
+    c.JSON(http.StatusOK, posts)
 }

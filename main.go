@@ -96,17 +96,18 @@ func main() {
 
 			admin.PUT("/setting", handler.UpdateSettingHandler)
 
-			admin.POST("/tool", handler.AddToolHandler)
-			admin.DELETE("/tool/:id", handler.DeleteToolHandler)
-
-			admin.PUT("/tool/:id", handler.UpdateToolHandler)
 
 
-			admin.PUT("/tool/sort", handler.UpdateToolsSortHandler)
+
 
 			admin.POST("/catelog", handler.AddCatelogHandler)
 			admin.DELETE("/catelog/:id", handler.DeleteCatelogHandler)
 			admin.PUT("/catelog/:id", handler.UpdateCatelogHandler)
+
+			admin.GET("/posts", handler.GetPostsHandler)
+            admin.POST("/post", handler.AddPostHandler)
+            admin.DELETE("/post/:id", handler.DeletePostHandler)
+            admin.PUT("/post/:id", handler.UpdatePostHandler)
 		}
 	}
 	logger.LogInfo("应用启动成功，网址: http://localhost:%s", *port)

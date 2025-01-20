@@ -124,9 +124,9 @@ func InitDB() {
 		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN hide BOOLEAN;`)
 	}
 	migration_2024_12_13() // 只涉及 nav_catelog 表，所以可以放在这里
-    migration_2025_01_19()
-    migration_2025_01_19_fix()
-     migration_2025_01_20()
+//     migration_2025_01_19()
+//     migration_2025_01_19_fix()
+//      migration_2025_01_20()
 
 	// api token 表
 	sql_create_table = `
@@ -147,6 +147,7 @@ func InitDB() {
 			value TEXT
 		);
 		`
+
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 	// 如果不存在，就初始化用户
@@ -186,6 +187,19 @@ func InitDB() {
 		_, err = res.LastInsertId()
 		utils.CheckErr(err)
 	}
+	 _, err = DB.Exec(`
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`)
+        if err != nil {
+            logger.LogError("创建posts表失败: %s", err)
+            return
+        }
+
 	rows.Close()
 	logger.LogInfo("数据库初始化成功💗")
 }

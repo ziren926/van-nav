@@ -12,6 +12,12 @@ import {
 import { useOnce } from '../../utils/useOnce';
 
 const menuItems: MenuItem[] = [
+    {
+        key: 'posts', // 修改 key
+        icon: <BackpackIcon className="w-5 h-5" />,
+        label: '帖子管理', // 修改标签名
+        path: '/admin/posts' // 修改路径
+      },
   {
     key: 'tools',
     icon: <BackpackIcon className="w-5 h-5" />,

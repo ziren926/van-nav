@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getJumpTarget, initServerJumpTargetConfig } from "./setting";
+import { request } from './request';
 
 axios.interceptors.request.use(
     (config) => {
@@ -170,4 +171,33 @@ export const fetchDeleteApiToken = async (id: number) => {
 export const fetchUpdateToolsSort = async (updates: { id: number; sort: number }[]) => {
     const { data } = await axios.put(`/api/admin/tools/sort`, updates);
     return data?.data || {};
+};
+
+
+// 获取帖子列表
+export const fetchPosts = async () => {
+  return await request('/api/admin/posts');
+};
+
+// 添加帖子
+export const fetchAddPost = async (data: any) => {
+  return await request('/api/admin/post', {
+    method: 'POST',
+    data,
+  });
+};
+
+// 删除帖子
+export const fetchDeletePost = async (id: number) => {
+  return await request(`/api/admin/post/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+// 更新帖子
+export const fetchUpdatePost = async (id: number, data: any) => {
+  return await request(`/api/admin/post/${id}`, {
+    method: 'PUT',
+    data,
+  });
 };

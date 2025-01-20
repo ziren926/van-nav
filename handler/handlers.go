@@ -191,32 +191,139 @@ func GetLogoImgHandler(c *gin.Context) {
 }
 
 func GetAdminAllDataHandler(c *gin.Context) {
-	// 管理员获取全部数据，还有个用户名。
-	tools := service.GetAllTool()
-	catelogs := service.GetAllCatelog()
-	setting := service.GetSetting()
-	tokens := service.GetApiTokens()
-	userId, ok := c.Get("uid")
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success":      false,
-			"errorMessage": "不存在该用户！",
-		})
-		return
-	}
-	c.JSON(200, gin.H{
-		"success": true,
-		"data": gin.H{
-			"tools":    tools,
-			"catelogs": catelogs,
-			"setting":  setting,
-			"user": gin.H{
-				"name": c.GetString("username"),
-				"id":   userId,
-			},
-			"tokens": tokens,
-		},
-	})
+    // 1. 获取所有工具数据
+    tools := []types.Tool{}
+    toolRows, err := database.DB.Query(`
+        SELECT id, name, desc, logo, url, catelog, sort, hide
+        FROM tools
+        ORDER BY sort ASC
+    `)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer toolRows.Close()
+
+    for toolRows.Next() {
+        var tool types.Tool
+        err := toolRows.Scan(&tool.ID, &tool.Name, &tool.Desc, &tool.Logo, &tool.Url, &tool.Catelog, &tool.Sort, &tool.Hide)
+        if err != nil {
+            continue
+        }
+        tools = append(tools, tool)
+    }
+
+    // 2. 获取所有分类数据
+    catelogs := []types.Catelog{}
+    catelogRows, err := database.DB.Query(`
+        SELECT id, name, sort, hide
+        FROM catelogs
+        ORDER BY sort ASC
+    `)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer catelogRows.Close()
+
+    for catelogRows.Next() {
+        var catelog types.Catelog
+        err := catelogRows.Scan(&catelog.ID, &catelog.Name, &catelog.Sort, &catelog.Hide)
+        if err != nil {
+            continue
+        }
+        catelogs = append(catelogs, catelog)
+    }
+
+    // 3. 获取所有 API Token 数据
+    tokens := []types.ApiToken{}
+    tokenRows, err := database.DB.Query(`
+        SELECT id, name, value
+        FROM api_tokens
+    `)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer tokenRows.Close()
+
+    for tokenRows.Next() {
+        var token types.ApiToken
+        err := tokenRows.Scan(&token.ID, &token.Name, &token.Value)
+        if err != nil {
+            continue
+        }
+        tokens = append(tokens, token)
+    }
+
+    // 4. 获取系统设置数据
+    var setting types.Setting
+    err = database.DB.QueryRow(`
+        SELECT
+            favicon,
+            title,
+            gov_record,
+            jump_target_blank,
+            logo192,
+            logo512,
+            hide_admin,
+            hide_github
+        FROM settings
+        LIMIT 1
+    `).Scan(
+        &setting.Favicon,
+        &setting.Title,
+        &setting.GovRecord,
+        &setting.JumpTargetBlank,
+        &setting.Logo192,
+        &setting.Logo512,
+        &setting.HideAdmin,
+        &setting.HideGithub,
+    )
+    if err != nil {
+        // 如果没有设置数据，使用默认值
+        setting = types.Setting{
+            Favicon:         "/favicon.ico",
+            Title:          "VanNav",
+            GovRecord:      "",
+            JumpTargetBlank: true,
+            Logo192:        "/logo192.png",
+            Logo512:        "/logo512.png",
+            HideAdmin:      false,
+            HideGithub:     false,
+        }
+    }
+
+    // 5. 获取所有帖子数据
+    posts := []types.Post{}
+    postRows, err := database.DB.Query(`
+        SELECT id, title, content, create_time, update_time
+        FROM posts
+        ORDER BY create_time DESC
+    `)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    defer postRows.Close()
+
+    for postRows.Next() {
+        var post types.Post
+        err := postRows.Scan(&post.ID, &post.Title, &post.Content, &post.CreateTime, &post.UpdateTime)
+        if err != nil {
+            continue
+        }
+        posts = append(posts, post)
+    }
+
+    // 返回所有数据
+    c.JSON(http.StatusOK, gin.H{
+        "tools":    tools,
+        "catelogs": catelogs,
+        "tokens":   tokens,
+        "setting":  setting,
+        "posts":    posts,
+    })
 }
 
 func LoginHandler(c *gin.Context) {

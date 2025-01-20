@@ -57,13 +57,11 @@ type Catelog struct {
     Hide bool   `json:"hide"`
 }
 
+
 type Post struct {
-    ID          int64     `json:"id"`
-    ToolID      int64     `json:"tool_id"`
-    Title       string    `json:"title"`
-    Content     string    `json:"content"`
-    CreatedAt   time.Time `json:"created_at"`
-    UpdatedAt   time.Time `json:"updated_at"`
-    CreatedBy   string    `json:"created_by"`
-    UpdatedBy   string    `json:"updated_by"`
+    ID        int64     `json:"id"`
+    Title     string    `json:"title"`
+    Content   string    `json:"content"`
+    CreateTime time.Time `json:"createTime"`
+    UpdateTime time.Time `json:"updateTime"`
 }

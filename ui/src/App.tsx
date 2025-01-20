@@ -11,6 +11,7 @@ const PostEditor = React.lazy(() => import('./pages/PostEditor'));
 const Home = React.lazy(() => import('./pages/Home'));
 const AdminPage = React.lazy(() => import('./pages/admin').then(module => ({ default: module.AdminPage })));
 const Login = React.lazy(() => import('./pages/Login'));
+const Posts = React.lazy(() => import('./pages/admin/tabs/Posts').then(module => ({ default: module.Posts })));
 
 // 懒加载管理后台的子页面
 const Tools = React.lazy(() => import('./pages/admin/tabs/Tools').then(module => ({ default: module.Tools })));
@@ -122,7 +123,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPage />}>
               <Route index element={<Tools />} />
-              <Route path="tools" element={<Tools />} />
+              <Route path="posts" element={<Posts />} />
               <Route path="categories" element={<Catelog />} />
               <Route path="api-token" element={<ApiToken />} />
               <Route path="settings" element={<Setting />} />
