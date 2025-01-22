@@ -1,13 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Space, Input, message, Popconfirm, Modal, Form, Spin } from 'antd';
 import { useData } from '../hooks/useData';
-import { fetchAddPost, fetchDeletePost, fetchUpdatePost } from '../../../utils/api';
+import { fetchPosts, fetchAddPost, fetchDeletePost, fetchUpdatePost } from '../../../utils/api';
 
 export const Posts = () => {
   const [showAddModel, setShowAddModel] = useState(false);
   const [addForm] = Form.useForm();
   const { store, loading, reload } = useData();
   const [searchString, setSearchString] = useState("");
+
+  const handleSubmit = async (values: any) => {
+      try {
+          await fetchAddPost(values);
+          message.success('发布成功');
+          // 刷新帖子列表
+          fetchPosts();
+      } catch (error) {
+          console.error('发布失败:', error);
+          message.error('发布失败: ' + (error.message || '未知错误'));
+      }
+  };
 
   // 处理创建帖子
   const handleCreate = useCallback(

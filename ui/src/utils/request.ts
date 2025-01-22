@@ -3,8 +3,10 @@
 interface RequestOptions extends RequestInit {
   data?: any;
 }
-
 export async function request(url: string, options: RequestOptions = {}) {
+  // 确保 url 以 / 开头
+  const fullUrl = url.startsWith('/') ? url : `/${url}`;
+
   const { data, ...rest } = options;
 
   const defaultOptions: RequestOptions = {
@@ -14,43 +16,46 @@ export async function request(url: string, options: RequestOptions = {}) {
     ...rest,
   };
 
-  // 如果有 data，添加到 body 中
   if (data) {
     defaultOptions.body = JSON.stringify(data);
   }
 
   // 获取存储的 token
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('_token');
   if (token) {
     defaultOptions.headers = {
       ...defaultOptions.headers,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': token,
     };
   }
 
-  try {
-    const response = await fetch(url, defaultOptions);
+  console.log('Request URL:', fullUrl);
+  console.log('Request Options:', defaultOptions);
 
-    // 处理 401 未授权的情况
+  try {
+    const response = await fetch(fullUrl, defaultOptions);
+    console.log('Response Status:', response.status);
+
     if (response.status === 401) {
-      localStorage.removeItem('token');
+      localStorage.removeItem('_token');
       window.location.href = '/login';
       return;
     }
 
-    // 如果响应不是 200 OK，抛出错误
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 尝试解析 JSON 响应
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      const jsonResponse = await response.json();
+      console.log('Response Data:', jsonResponse);
+      return jsonResponse;
     }
 
-    // 如果不是 JSON，返回原始响应
-    return await response.text();
+    const textResponse = await response.text();
+    console.log('Response Text:', textResponse);
+    return textResponse;
 
   } catch (error) {
     console.error('Request error:', error);
